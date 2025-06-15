@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>T Suprême</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="banner">T</div>
+  <div id="terminal">
+    <div id="output"></div>
+    <input type="text" id="input" placeholder="Entrez votre pseudo et mot de passe..." autofocus />
+  </div>
+
+  <script>
+    let pseudo = null;
+    let loggedIn = false;
+
+    const input = document.getElementById('input');
+    const output = document.getElementById('output');
+
+    function print(msg, color = 'white') {
+      const div = document.createElement('div');
+      div.style.color = color;
+      div.textContent = msg;
+      output.appendChild(div);
+      output.scrollTop = output.scrollHeight;
+    }
+
+    input.addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter') {
+        const val = input.value.trim();
+        input.value = '';
+
+        if (!loggedIn) {
+          const [p, pass] = val.split(' ');
+          if (!p || !pass) {
+            print('Format: <pseudo> <motdepasse>', 'red');
+            return;
+          }
+          pseudo = p;
+          const r = await fetch('/api/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ pseudo, password: pass })
+          });
+          const res = await r.json();
+          if (res.success) {
+            print(`Bienvenue ${pseudo}!`, 'green');
+            loggedIn = true;
+            poll();
+          } else {
+            // Essayer l'inscription
+            const r2 = await fetch('/api/register', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({ pseudo, password: pass })
+            });
+            const res2 = await r2.json();
+            if (res2.success) {
+              print(`Inscrit et connecté: ${pseudo}`, 'green');
+              loggedIn = true;
+              poll();
+            } else {
+              print(res2.message, 'red');
+            }
+          }
+        } else {
+          await fetch('/api/message', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ pseudo, content: val })
+          });
+        }
+      }
+    });
+
+    async function poll() {
+      const r = await fetch(`/api/messages/${pseudo}`);
+      const msgs = await r.json();
+      output.innerHTML = '';
+      msgs.forEach(m => {
+        const color = m.destinataire ? 'cyan' : 'lime';
+        print(`[${m.pseudo}] ${m.content}`, color);
+      });
+      setTimeout(poll, 1000);
+    }
+  </script>
+</body>
+</html>
