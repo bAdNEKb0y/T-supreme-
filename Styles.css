@@ -1,0 +1,30 @@
+body {
+  background: black;
+  color: white;
+  font-family: monospace;
+  margin: 0;
+}
+.banner {
+  background: red;
+  color: black;
+  font-size: 48px;
+  font-weight: bold;
+  text-align: center;
+  padding: 10px;
+}
+#terminal {
+  padding: 10px;
+}
+#output {
+  height: 400px;
+  overflow-y: scroll;
+  border: 1px solid white;
+  padding: 5px;
+}
+#input {
+  width: 100%;
+  padding: 10px;
+  background: black;
+  color: white;
+  border: 1px solid white;
+}
